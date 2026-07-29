@@ -178,6 +178,17 @@ def analyze_smc(symbol, tf, higher_tf, min_range_pct, sl_margin):
 def bot_scanner():
     """Bot scanner loop — runs in a background thread."""
     print("🚀 Bot Sab3r SMC Scanner started (30 coins | 15m + 4H)")
+    
+    # ── رسالة تجريبية لمعرفة هل البوت يرسل أم لا ──
+    try:
+        requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            data={"chat_id": TELEGRAM_CHAT_ID, "text": "🤖 تم تشغيل البوت بنجاح وهو الآن يراقب السوق!"}
+        )
+    except Exception as e:
+        print(f"خطأ رسالة التجربة: {e}")
+    # ──────────────────────────────────────────────
+
     sent_signals = set()
     while True:
         stats["last_scan"] = datetime.utcnow().strftime("%H:%M:%S UTC")
