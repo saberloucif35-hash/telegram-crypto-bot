@@ -83,6 +83,9 @@ SYMBOLS = [
 exchange = ccxt.mexc({'enableRateLimit': True})
 
 def send_telegram_photo(image_path, caption):
+    if not TELEGRAM_BOT_TOKEN:
+        print("❌ خطأ: TELEGRAM_BOT_TOKEN غير موجود في متغيرات البيئة Environment Variables!")
+        return
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
     try:
         with open(image_path, 'rb') as photo:
@@ -179,14 +182,18 @@ def bot_scanner():
     """Bot scanner loop — runs in a background thread."""
     print("🚀 Bot Sab3r SMC Scanner started (30 coins | 15m + 4H)")
     
-    # ── رسالة تجريبية لمعرفة هل البوت يرسل أم لا ──
-    try:
-        requests.post(
-            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-            data={"chat_id": TELEGRAM_CHAT_ID, "text": "🤖 تم تشغيل البوت بنجاح وهو الآن يراقب السوق!"}
-        )
-    except Exception as e:
-        print(f"خطأ رسالة التجربة: {e}")
+    # ── فحص وإرسال رسالة التجربة مع طباعة النتيجة لمعرفة السبب ──
+    if not TELEGRAM_BOT_TOKEN:
+        print("❌ لم يتم العثور على TELEGRAM_BOT_TOKEN في إعدادات البيئة (Environment Variables)!")
+    else:
+        try:
+            res = requests.post(
+                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+                data={"chat_id": TELEGRAM_CHAT_ID, "text": "🤖 تم تشغيل البوت بنجاح وهو الآن يراقب السوق!"}
+            )
+            print(f"📡 حالة إرسال الرسالة التجريبية: {res.status_code} - Response: {res.text}")
+        except Exception as e:
+            print(f"❌ خطأ رسالة التجربة: {e}")
     # ──────────────────────────────────────────────
 
     sent_signals = set()
@@ -232,7 +239,7 @@ if __name__ == '__main__':
     scanner_thread = threading.Thread(target=bot_scanner, daemon=True)
     scanner_thread.start()
 
-    # Start Flask web server (Replit uses PORT env var)
+    # Start Flask web server
     port = int(os.environ.get('PORT', 5000))
     print(f"🌐 Flask status server starting on port {port}...")
     app.run(host='0.0.0.0', port=port)
